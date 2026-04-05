@@ -1,0 +1,1434 @@
+// CrackinPMG Cheat Menu - Full Version
+// GUI + All hack logic from ProdigyPNP TypeScript sources, converted to plain JS
+
+var script = document.createElement("script");
+script.src = "https://cdn.jsdelivr.net/npm/sweetalert2@11";
+document.head.appendChild(script);
+
+script.onload = function () {
+
+  // ─── STYLES ───────────────────────────────────────────────────────────────
+  var style = document.createElement("style");
+  style.innerHTML = `
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500&display=swap');
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #f97316;
+      --text: #f0f0f0;
+      --muted: #777;
+      --toggle-on: #f97316;
+      --toggle-off: #333;
+      --radius: 6px;
+    }
+
+    #crackin-menu {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      z-index: 99999;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(-100%);
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+    }
+    #crackin-menu.open { transform: translateY(0); }
+
+    #crackin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    #crackin-header .logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 1px;
+      color: var(--accent);
+    }
+    #crackin-header .logo span { color: var(--text); }
+    #crackin-header .subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    #crackin-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 10px 20px 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    #crackin-tabs::-webkit-scrollbar { display: none; }
+
+    .crackin-tab {
+      padding: 7px 14px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      border: 1px solid transparent;
+      border-bottom: none;
+      white-space: nowrap;
+      transition: color 0.15s, background 0.15s;
+      position: relative;
+      bottom: -1px;
+    }
+    .crackin-tab:hover { color: var(--text); }
+    .crackin-tab.active {
+      color: var(--accent);
+      background: var(--bg);
+      border-color: var(--border);
+      border-bottom-color: var(--bg);
+    }
+    .crackin-tab.tab-beta { color: #a855f7; }
+    .crackin-tab.tab-beta.active { color: #c084fc; }
+    .crackin-tab.tab-patched { color: #6b7280; }
+    .crackin-tab.tab-patched.active { color: #9ca3af; }
+
+    #crackin-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .crackin-panel { display: none; }
+    .crackin-panel.active { display: block; }
+
+    .crackin-panel-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill {
+      font-size: 10px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 99px;
+      letter-spacing: 0.5px;
+    }
+    .pill-beta { background: #581c87; color: #c084fc; }
+    .pill-patched { background: #1f2937; color: #9ca3af; }
+
+    .crackin-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .crackin-btn {
+      padding: 8px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .crackin-btn:hover { background: var(--accent); border-color: var(--accent); color: #000; }
+    .crackin-btn.btn-beta { border-color: #581c87; color: #c084fc; }
+    .crackin-btn.btn-beta:hover { background: #7e22ce; border-color: #7e22ce; color: #fff; }
+    .crackin-btn.btn-patched { border-color: #374151; color: #6b7280; text-decoration: line-through; opacity: 0.7; }
+    .crackin-btn.btn-patched:hover { background: #374151; border-color: #374151; color: #9ca3af; text-decoration: none; opacity: 1; }
+
+    .crackin-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.15s;
+      min-width: 200px;
+    }
+    .crackin-toggle-row:hover { border-color: var(--accent); }
+    .crackin-toggle-row .label { flex: 1; font-size: 12px; font-weight: 500; }
+
+    .crackin-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .crackin-switch input { display: none; }
+    .crackin-switch .track {
+      position: absolute; inset: 0;
+      border-radius: 99px;
+      background: var(--toggle-off);
+      transition: background 0.2s;
+    }
+    .crackin-switch .thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s;
+    }
+    .crackin-switch input:checked + .track { background: var(--toggle-on); }
+    .crackin-switch input:checked ~ .thumb { transform: translateX(16px); }
+
+    #crackin-footer {
+      padding: 8px 20px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    #crackin-toggler {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 100000;
+      width: 34px; height: 34px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none; border-left: none;
+      border-radius: 0 0 var(--radius) 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 16px;
+      transition: background 0.15s;
+    }
+    #crackin-toggler:hover { background: var(--surface2); }
+
+    .my-swal { z-index: 200000 !important; }
+    .my-popup { width: 400px !important; }
+  `;
+  document.head.appendChild(style);
+
+  // ─── SWAL HELPERS (mirrors the TS utils/swal) ─────────────────────────────
+  var SC = { container: "my-swal", popup: "my-popup" };
+
+  var Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    customClass: SC
+  });
+
+  var NumberInput = {
+    fire: function(title, text, icon) {
+      return Swal.fire({
+        title: title || "Enter a number",
+        text: text,
+        icon: icon || "question",
+        input: "number",
+        showCancelButton: true,
+        customClass: SC
+      });
+    }
+  };
+
+  var Input = {
+    fire: function(titleOrOpts, text, icon) {
+      if (typeof titleOrOpts === "object") {
+        return Swal.fire(Object.assign({ showCancelButton: true, customClass: SC, input: titleOrOpts.input || "text" }, titleOrOpts));
+      }
+      return Swal.fire({
+        title: titleOrOpts || "Enter a value",
+        text: text,
+        icon: icon,
+        input: "text",
+        showCancelButton: true,
+        customClass: SC
+      });
+    }
+  };
+
+  var Confirm = {
+    fire: function(titleOrOpts, text, icon) {
+      if (typeof titleOrOpts === "object") {
+        return Swal.fire(Object.assign({ showCancelButton: true, confirmButtonText: "Yes", cancelButtonText: "No", customClass: SC }, titleOrOpts));
+      }
+      return Swal.fire({
+        title: titleOrOpts || "Are you sure?",
+        text: text,
+        icon: icon || "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+        customClass: SC
+      });
+    }
+  };
+
+  // ─── PRODIGY HELPERS (mirrors utils/util + utils/hackify) ─────────────────
+
+  // Build the _ object (inject container walker) - same pattern as the original code
+  var _ = window._ || {};
+  var VERY_LARGE_NUMBER = 9007199254740991;
+
+  function getPlayer() {
+    try { return Boot.prototype.game._state._current.user.source; } catch(e) { return null; }
+  }
+  function getProdigy() {
+    try { return Boot.prototype.add.prodigyGame; } catch(e) { return null; }
+  }
+  function getGame() {
+    try { return Boot.prototype.game; } catch(e) { return null; }
+  }
+  function getCurrent() {
+    try { return Boot.prototype.game._state._current; } catch(e) { return null; }
+  }
+
+  function saveCharacter() {
+    try {
+      var p = getPlayer();
+      p._saveEnabled = true;
+      p.updated = true;
+      p.appearanceChanged = true;
+      p.saveEnabled = true;
+      p.forceSaveCharacter();
+    } catch(e) { console.error("saveCharacter error:", e); }
+  }
+
+  // itemify: takes an array of game data items and returns backpack-format array
+  function itemify(arr, amount) {
+    return arr.map(function(x) { return { ID: x.ID, N: amount }; });
+  }
+
+  // ids / names used by inventory hacks
+  var ids   = ["boots","follow","fossil","hat","item","key","mount","outfit","relic","spellRelic","weapon","currency"];
+  var names = ["Boots","Buddies","Fossils","Hats","Items","Key Items","Mounts","Outfits","Relics","Spell Relics","Weapons","Currency"];
+
+  // runeify
+  function runeify(orbData, amount) {
+    return orbData.map(function(x) { return { ID: x.ID, N: amount }; });
+  }
+
+  // getMemberModule
+  function getMemberModule() {
+    var mod;
+    try {
+      Array.from(Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer._bindingDictionary._map).forEach(function(e) {
+        try {
+          var obj = Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer.get(e[0]);
+          if (obj && obj.data && obj.data.membership) mod = e[0];
+        } catch(err) {}
+      });
+    } catch(e) {}
+    return mod;
+  }
+
+  // getPet: shows a swal to pick from kennel, returns index
+  async function getPet(title) {
+    try {
+      var p = getPlayer();
+      var kennel = p.kennel.data;
+      var gameData = Boot.prototype.game._state._states.get("Boot")._gameData.pet;
+      var opts = {};
+      kennel.forEach(function(pet, i) {
+        var name = (gameData.find(function(x) { return x.ID == pet.ID; }) || {}).data;
+        opts[i] = (name ? name.name : "Unknown") + " (Lv " + pet.level + ")";
+      });
+      var res = await Swal.fire({ title: title || "Select a pet", input: "select", inputOptions: opts, showCancelButton: true, customClass: SC });
+      if (res.value === undefined) return undefined;
+      return parseInt(res.value);
+    } catch(e) { return undefined; }
+  }
+
+  // toHouse
+  function toHouse(userID) {
+    try { Boot.prototype.game._state._current._world.zones.house.teleport("preview-" + userID); } catch(e) { console.error(e); }
+  }
+
+  // getItem helper
+  function getItem(type, id) {
+    try { return Boot.prototype.game._state._states.get("Boot")._gameData[type].find(function(x) { return x.ID === id; }); } catch(e) { return null; }
+  }
+
+  // ─── FPS COUNTER ──────────────────────────────────────────────────────────
+  var fpsEl = null, fpsFrame = null, fpsLast = performance.now(), fpsCount = 0;
+  function startFps() {
+    if (fpsEl) return;
+    fpsEl = document.createElement("div");
+    fpsEl.style.cssText = "position:fixed;bottom:8px;right:8px;background:#000a;color:#f97316;font-family:monospace;font-size:13px;padding:4px 8px;border-radius:4px;z-index:999999;pointer-events:none;";
+    document.body.appendChild(fpsEl);
+    function loop() {
+      fpsFrame = requestAnimationFrame(loop);
+      fpsCount++;
+      var now = performance.now();
+      if (now - fpsLast >= 1000) {
+        fpsEl.textContent = fpsCount + " FPS";
+        fpsCount = 0;
+        fpsLast = now;
+      }
+    }
+    loop();
+  }
+  function stopFps() {
+    if (fpsFrame) cancelAnimationFrame(fpsFrame);
+    if (fpsEl) { fpsEl.remove(); fpsEl = null; }
+  }
+
+  // PopupInterval
+  var popupIntervalID = null;
+  function PopupInterval(on) {
+    if (on) {
+      popupIntervalID = setInterval(function() {
+        try { Boot.prototype.add.prodigyGame.open.menuCloseAll(); } catch(e) {}
+      }, 500);
+    } else {
+      if (popupIntervalID) clearInterval(popupIntervalID);
+    }
+  }
+
+  // ─── HACK DEFINITIONS ─────────────────────────────────────────────────────
+  // Each entry: { id, label, tabClass, pill, items: [{ type, label, cls, fn, enabledFn, disabledFn }] }
+
+  var categories = [
+
+    // ── PLAYER ──────────────────────────────────────────────────────────────
+    { id: "player", label: "Player Hacks", items: [
+
+      { type: "hack", label: "Open ProdigyPNP Chat", fn: async function() {
+        Swal.fire({ title: "ProdigyPNP Chat", html: "Chat integration not available in standalone build.", icon: "info", customClass: SC });
+      }},
+
+      { type: "hack", label: "Max Account", fn: async function() {
+        if (!(await Confirm.fire("Are you sure that you want to max your account?", "We recommend doing this on an alt.")).value) return;
+        var p = getPlayer();
+        p.data.gold = 9900000;
+        var xpConstant = 1.042;
+        var h = 100 - 2;
+        p.data.stars = Math.round((1 - Math.pow(xpConstant, h)) / (1 - xpConstant) * 20 + 10);
+        p.data.level = 100;
+        p.getLevel = function() { return 100; };
+        p.data.bountyScore = 100;
+        for (var i = 0; i < 99; i++) {
+          try { getProdigy().giftBoxController.receiveGiftBox(null, getItem("giftBox", 1)); } catch(e) {}
+        }
+        for (var i = 0; i < 100; i++) { try { p.achievements.data.progress[i] = 10; } catch(e) {} }
+        p.data.tower = 100;
+        var num = 1;
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        ids.forEach(function(id) {
+          p.backpack.data[id] = itemify(gd[id].filter(function(l) { return id === "follow" ? ![125,126,127,128,129,134,135,136,137].includes(l.ID) : l; }), num);
+        });
+        gd.dorm.forEach(function(x) { p.house.data.items[x.ID] = { A: [], N: num }; });
+        var bountyIndex = function() { return p.backpack.data.item.findIndex(function(v) { return v.ID===84||v.ID===85||v.ID===86; }); };
+        while (bountyIndex() > -1) p.backpack.data.item.splice(bountyIndex(), 1);
+        p.backpack.data.mount = itemify(gd.mount, 1);
+        var amt = 6969420;
+        p.backpack.data.currency = itemify(gd.currency, amt);
+        gd.pet.forEach(function(x) { try { p.kennel.addPet(x.ID.toString(), VERY_LARGE_NUMBER, 26376, 100); } catch(e) {} });
+        p.kennel._encounterInfo._data.pets = [];
+        gd.pet.forEach(function(pet) { p.kennel._encounterInfo._data.pets.push({ firstSeenDate: Date.now(), ID: pet.ID, timesBattled: 1, timesRescued: 1 }); });
+        p.kennel.petTeam.forEach(function(v) { if (v && v.assignRandomSpells) v.assignRandomSpells(); });
+        p.equipment.setHat(200); p.equipment.setBoots(93); p.equipment.setOutfit(161); p.equipment.setWeapon(196);
+        p.appearanceChanged = true;
+        saveCharacter();
+        return Toast.fire("Maxed!", "Check your backpack!", "success");
+      }},
+
+      { type: "hack", label: "Set Gold", fn: async function() {
+        var res = await NumberInput.fire("Gold Amount", "What number do you want to set your gold to? (Max 10,000,000)", "question");
+        if (res.value === undefined) return;
+        if (+res.value > 10000000) return Toast.fire("Error", "Cannot have more than 10,000,000 gold.", "error");
+        getPlayer().data.gold = +res.value;
+        return Toast.fire("Success!", "You now have " + res.value + " gold.", "success");
+      }},
+
+      { type: "hack", label: "Set Level", fn: async function() {
+        var res = await NumberInput.fire("Level", "What level do you want?", "question");
+        if (res.value === undefined) return;
+        var i = res.value - 2, xpC = 1.042;
+        getPlayer().data.stars = Math.round((1 - Math.pow(xpC, i)) / (1 - xpC) * 20 + 10);
+        getPlayer().data.level = +res.value;
+        getPlayer().getLevel = function() { return getPlayer().data.level; };
+        return Toast.fire("Success!", "You are now level " + res.value + ".", "success");
+      }},
+
+      { type: "hack", label: "Get Member Stars", fn: async function() {
+        var res = await NumberInput.fire("Stars", "How many member stars do you want?", "question");
+        if (res.value === undefined) return;
+        getPlayer().data.storedMemberStars = +res.value;
+        return Toast.fire("Success!", "Member stars set to " + res.value + ".", "success");
+      }},
+
+      { type: "hack", label: "Set Bounty Points", fn: async function() {
+        var res = await NumberInput.fire("Bounty Points", "Max is 100.", "question");
+        if (res.value === undefined) return;
+        getPlayer().data.bountyScore = Math.min(+res.value, 100);
+        return Toast.fire("Success!", "Bounty points set.", "success");
+      }},
+
+      { type: "hack", label: "Obtain Conjure Cubes", fn: async function() {
+        var res = await NumberInput.fire("Conjure Cubes", "How many? (Max 99)", "question");
+        if (res.value === undefined) return;
+        for (var i = 0; i < Math.min(99, +res.value); i++) {
+          try { getProdigy().giftBoxController.receiveGiftBox(null, getItem("giftBox", 1)); } catch(e) {}
+        }
+        return Toast.fire("Success!", "You gained " + res.value + " conjure cubes.", "success");
+      }},
+
+      { type: "hack", label: "Set Wins", fn: async function() {
+        var res = await NumberInput.fire("Wins", "What number?", "question");
+        if (res.value === undefined) return;
+        getPlayer().data.win = +res.value;
+        return Toast.fire("Success!", "Wins set to " + res.value + ".", "success");
+      }},
+
+      { type: "hack", label: "Set Losses", fn: async function() {
+        var res = await NumberInput.fire("Losses", "What number?", "question");
+        if (res.value === undefined) return;
+        getPlayer().data.loss = +res.value;
+        return Toast.fire("Success!", "Losses set to " + res.value + ".", "success");
+      }},
+
+      { type: "toggle", label: "Toggle Membership",
+        enabledFn: async function() {
+          try { Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer.get(getMemberModule()).data.membership.active = true; } catch(e) {}
+          getPlayer().appearanceChanged = true;
+          return Toast.fire("Success!", "Membership enabled!", "success");
+        },
+        disabledFn: async function() {
+          try { Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer.get(getMemberModule()).data.membership.active = false; } catch(e) {}
+          getPlayer().appearanceChanged = true;
+          return Toast.fire("Success!", "Membership disabled.", "success");
+        }
+      },
+
+      { type: "hack", label: "Set Name (Client Side)", fn: async function() {
+        var res = await Input.fire("What would you like to set your name to?");
+        if (!res.value) return;
+        getPlayer().getName = function() { return res.value; };
+        getPlayer().appearanceChanged = true;
+        return Toast.fire("Changed!", "Your name was changed.");
+      }},
+
+      { type: "hack", label: "Change Name", fn: async function() {
+        var names = Boot.prototype.game._state._states.get("Boot")._gameData.name;
+        var div = document.createElement("div");
+        var createSelect = function(arr, eqFn) {
+          var select = document.createElement("select");
+          select.classList.add("selectName");
+          arr.forEach(function(opt) {
+            var el = document.createElement("option");
+            el.value = opt[0]; el.innerText = opt[1];
+            if (eqFn(opt[0])) el.selected = true;
+            select.options.add(el);
+          });
+          return select;
+        };
+        var p = getPlayer();
+        div.append(createSelect(names.filter(function(x){return x.data.type===0;}).map(function(x){return[x.ID.toString(),x.name];}), function(v){return +v===p.name.data.firstName;}));
+        div.append(createSelect(names.filter(function(x){return x.data.type===1;}).map(function(x){return[x.ID.toString(),x.name];}), function(v){return +v===p.name.data.middleName;}));
+        div.append(createSelect(names.filter(function(x){return x.data.type===2;}).map(function(x){return[x.ID.toString(),x.name];}), function(v){return +v===p.name.data.lastName;}));
+        var nicks = Boot.prototype.game._state._states.get("Boot")._gameData.nickname;
+        div.append(createSelect([["null","[none]"]].concat(nicks.map(function(x){return[x.ID.toString(),x.name];})), function(v){return +v===p.name.data.nickname||String(p.name.data.nickname)===v;}));
+        var res = await Swal.fire({ title:"Set Player Name", focusConfirm:false, showCancelButton:true, html:div, customClass:SC, preConfirm:function(){return Array.prototype.slice.call(document.querySelectorAll(".selectName")).map(function(x){return x.options[x.selectedIndex].value;});}});
+        if (res.value === undefined) return;
+        if (res.value[3] === "null") res.value[3] = null;
+        p.name.data.firstName = res.value[0] && +res.value[0];
+        p.name.data.middleName = res.value[1] && +res.value[1];
+        p.name.data.lastName = res.value[2] && +res.value[2];
+        p.name.data.nickname = res.value[3] && +res.value[3];
+        p.appearanceChanged = true;
+        return Toast.fire("Name Changed!", "Your name was successfully changed.", "success");
+      }},
+
+      { type: "hack", label: "Uncap Player Level (Client Side)", fn: async function() {
+        var res = await NumberInput.fire("Level", "What level? (Can be >100)", "question");
+        if (!res.value) return;
+        eval("getPlayer().getLevel = () => " + res.value);
+        return Toast.fire("Updated!", "Level updated (client side).", "success");
+      }},
+
+      { type: "hack", label: "Get All Achievements", fn: async function() {
+        var p = getPlayer();
+        for (var i = 0; i < 100; i++) { try { p.achievements.data.progress[i] = 10; } catch(e) {} }
+        return Toast.fire("Success!", "All achievements obtained!", "success");
+      }},
+
+      { type: "hack", label: "Fix Morph Crash", fn: async function() {
+        getPlayer().getPlayerData().playerTransformation = undefined;
+        getPlayer().appearanceChanged = true;
+        return Toast.fire("Success!", "Fixed morph crash bug.", "success");
+      }},
+
+      { type: "hack", label: "Permanent Morph", fn: async function() {
+        var p = getPlayer();
+        if (!p.data.playerTransformation) return Swal.fire("No Morph Active", "Please use a Morph Marble and try again.", "error");
+        p.data.playerTransformation.maxTime = Infinity;
+        p.data.playerTransformation.timeRemaining = Infinity;
+        return Toast.fire("Success!", "Your morph will last forever!", "success");
+      }},
+
+      { type: "hack", label: "Complete Current Task In Quest", fn: async function() {
+        var zones = {};
+        Object.keys(Boot.prototype.game._state._current._world.zones).forEach(function(z) { zones[z] = Boot.prototype.game._state._current._world.zones[z].name; });
+        var res = await Input.fire({ title:"What Quest?", input:"select", inputOptions: zones });
+        if (!res.value) return;
+        var qID = Boot.prototype.game._state._current._world.zones[res.value].getCurrentQuestID();
+        if (Boot.prototype.game._state._current._world.zones[res.value].completeQuest(qID)) {
+          Boot.prototype.game._state._current._world.goToZoneHub(res.value);
+          return Toast.fire("Success!", "Completed current quest task!", "success");
+        } else {
+          return Toast.fire("Error", "Could not complete quest.", "error");
+        }
+      }},
+
+      { type: "hack", label: "Set Dark Tower Floor", fn: async function() {
+        var res = await NumberInput.fire("Dark Tower Floor", "Floor 1-100.", "question");
+        if (!res.value) return;
+        getPlayer().data.tower = parseInt(res.value);
+        return Toast.fire("Success!", "Tower floor set to " + res.value + ".", "success");
+      }},
+
+      { type: "hack", label: "Get UserID", fn: async function() {
+        var uid = getPlayer().userID;
+        try { await navigator.clipboard.writeText(uid.toString()); } catch(e) {}
+        return Swal.fire({ title:"User ID", html:"Your User ID: <br><code>" + uid + "</code><br>Copied to clipboard.", icon:"info", customClass:SC });
+      }},
+
+      { type: "hack", label: "Copy Account", fn: async function() {
+        var res = await NumberInput.fire("UserID to copy from", "", "question");
+        if (!res.value) return;
+        if (!(await Confirm.fire("Are you sure?", "This replaces all your data with the other account.")).value) return;
+        var uid = res.value;
+        var playerData = await (await fetch("https://api.prodigygame.com/game-api/v2/characters/" + uid + "?fields=inventory%2Cdata%2CisMember%2Ctutorial%2Cpets%2Cencounters%2Cquests%2Cappearance%2Cequipment%2Chouse%2Cachievements%2Cstate&userID=" + uid, { headers:{ Authorization: localStorage.JWT_TOKEN } })).json();
+        await fetch("https://api.prodigygame.com/game-api/v3/characters/" + getPlayer().userID, { headers:{ "Content-Type":"application/json", Authorization: localStorage.JWT_TOKEN }, body: JSON.stringify({ data: JSON.stringify(playerData[uid]), userID: getPlayer().userID }), method:"POST" });
+        return Toast.fire("Success!", "Copied! Please reload.", "success");
+      }},
+
+      { type: "hack", label: "Set Grade", fn: async function() {
+        var res = await NumberInput.fire("Grade", "What grade?", "question");
+        if (!res.value) return;
+        getPlayer().grade = parseInt(res.value);
+        return Toast.fire("Success!", "Grade set to " + res.value + ".", "success");
+      }},
+
+    ]},
+
+    // ── INVENTORY ────────────────────────────────────────────────────────────
+    { id: "inventory", label: "Inventory Hacks", items: [
+
+      { type: "hack", label: "Item Stacker", fn: async function() {
+        var res = await NumberInput.fire("Amount", "How many of every item?", "question");
+        if (!res.value) return;
+        if (!(await Confirm.fire("Get ALL items in the game?")).value) return;
+        var p = getPlayer();
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        ids.forEach(function(id) {
+          p.backpack.data[id] = itemify(gd[id].filter(function(l){return id==="follow"?![125,126,127,128,129,134,135,136,137].includes(l.ID):l;}), +res.value);
+        });
+        gd.dorm.forEach(function(x) { p.house.data.items[x.ID] = { A:[], N:+res.value }; });
+        var bi = function() { return p.backpack.data.item.findIndex(function(v){return v.ID===84||v.ID===85||v.ID===86;}); };
+        while (bi() > -1) p.backpack.data.item.splice(bi(), 1);
+        return Toast.fire("Success!", "All items added!", "success");
+      }},
+
+      { type: "hack", label: "Clear Inventory", fn: async function() {
+        if (!(await Confirm.fire("Clear your entire inventory?")).value) return;
+        var p = getPlayer();
+        Object.keys(p.backpack.data).forEach(function(d) { p.backpack.data[d] = []; });
+        return Toast.fire("Success!", "Inventory cleared.", "success");
+      }},
+
+      { type: "hack", label: "Selector (Basic)", fn: async function() {
+        var nameOpts = {};
+        names.forEach(function(n, i) { nameOpts[i] = n; });
+        var val = await Swal.fire({ title:"What would you like to obtain?", input:"select", inputOptions:nameOpts, inputPlaceholder:"Select...", showCancelButton:true, customClass:SC });
+        if (!val.value && val.value !== 0) return;
+        var idx = parseInt(val.value);
+        var id = ids[idx];
+        var amt = await NumberInput.fire("Amount", "How many?", "question");
+        if (!amt.value) return;
+        if (!(await Confirm.fire("Get all " + names[idx].toLowerCase() + "?")).value) return;
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        getPlayer().backpack.data[id] = itemify(gd[id].filter(function(a){return id==="follow"?![125,126,127,128,129,134,135,136,137].includes(a.ID):a;}), +amt.value);
+        saveCharacter();
+        return Toast.fire(names[idx] + " Added!", "All added to inventory!", "success");
+      }},
+
+      { type: "hack", label: "Selector (Advanced)", fn: async function() {
+        var nameOpts = {};
+        names.forEach(function(n, i) { nameOpts[i] = n; });
+        var val = await Swal.fire({ title:"What category?", input:"select", inputOptions:nameOpts, inputPlaceholder:"Select...", showCancelButton:true, customClass:SC });
+        if (!val.value && val.value !== 0) return;
+        var idx = parseInt(val.value);
+        var id = ids[idx];
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        if (!gd[id]) return;
+        var objs = {};
+        gd[id].forEach(function(elem, i) { objs[i] = elem.data ? elem.data.name : elem.name; });
+        var spec = await Swal.fire({ title:"Which " + names[idx] + "?", input:"select", inputOptions:objs, inputPlaceholder:"Select...", showCancelButton:true, customClass:SC });
+        if (!spec.value && spec.value !== 0) return;
+        var correct = parseInt(spec.value);
+        var amt = await NumberInput.fire("Amount", "How many?", "question");
+        if (!amt.value) return;
+        var p = getPlayer();
+        var existIdx = p.backpack.data[id].findIndex(function(e){return e.ID===gd[id][correct].ID;});
+        if (existIdx === -1) {
+          p.backpack.data[id].push({ ID: gd[id][correct].ID, N: +amt.value });
+        } else {
+          p.backpack.data[id][existIdx].N += +amt.value;
+        }
+        saveCharacter();
+        return Toast.fire(names[idx] + " Added!", "Item added to inventory.", "success");
+      }},
+
+      { type: "hack", label: "Obtain All Furniture", fn: async function() {
+        var res = await NumberInput.fire("Amount", "How many of each furniture?", "question");
+        if (!res.value) return;
+        if (!(await Confirm.fire("Get all furniture?")).value) return;
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        gd.dorm.forEach(function(x) { getPlayer().house.data.items[x.ID] = { A:[], N:+res.value }; });
+        return Toast.fire("Furniture Added!", "All furniture added!", "success");
+      }},
+
+      { type: "hack", label: "Obtain All Mounts", fn: async function() {
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        getPlayer().backpack.data.mount = itemify(gd.mount, 1);
+        return Toast.fire("Mounts Added!", "All mounts added!", "success");
+      }},
+
+      { type: "hack", label: "Remove Item", fn: async function() {
+        var nameOpts = {};
+        names.forEach(function(n, i) { nameOpts[i] = n; });
+        var cat = await Swal.fire({ title:"Category?", input:"select", inputOptions:nameOpts, inputPlaceholder:"Select...", showCancelButton:true, customClass:SC });
+        if (!cat.value && cat.value !== 0) return;
+        var idx = parseInt(cat.value);
+        var id = ids[idx];
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        if (!gd[id]) return;
+        var objs = {};
+        gd[id].forEach(function(elem, i) { objs[i] = elem.data ? elem.data.name : elem.name; });
+        var item = await Swal.fire({ title:"Which item to remove?", input:"select", inputOptions:objs, inputPlaceholder:"Select...", showCancelButton:true, customClass:SC });
+        if (!item.value && item.value !== 0) return;
+        var itemIdx = parseInt(item.value);
+        var amt = await NumberInput.fire("Amount", "How many to remove?", "question");
+        if (!amt.value) return;
+        var p = getPlayer();
+        var existIdx = p.backpack.data[id].findIndex(function(e){return e.ID===gd[id][itemIdx].ID;});
+        if (existIdx === -1) return Swal.fire("Item Not Found", "You don't have that item.", "error");
+        p.backpack.data[id][existIdx].N -= +amt.value;
+        if (p.backpack.data[id][existIdx].N <= 0) p.backpack.data[id].splice(existIdx, 1);
+        saveCharacter();
+        return Toast.fire("Removed!", "Item removed.", "success");
+      }},
+
+    ]},
+
+    // ── LOCATION ─────────────────────────────────────────────────────────────
+    { id: "location", label: "Location Hacks", items: [
+
+      { type: "toggle", label: "WASD Movement",
+        enabledFn: async function() { window._crackinWASD = true; return Toast.fire("Enabled!", "WASD Movement enabled.", "success"); },
+        disabledFn: async function() { window._crackinWASD = false; return Toast.fire("Disabled!", "WASD Movement disabled.", "success"); }
+      },
+
+      { type: "hack", label: "Edit Walkspeed", fn: async function() {
+        var res = await Input.fire("What walk speed? (default 1.5)");
+        if (!res.value) return;
+        try { getPlayer()._playerContainer.walkSpeed = parseFloat(res.value) || 1.5; } catch(e) {}
+        return Toast.fire("Success!", "Walk speed set to " + (parseFloat(res.value)||1.5) + ".", "success");
+      }},
+
+      { type: "toggle", label: "Toggle Click Teleporting",
+        enabledFn: async function() {
+          window._crackinTpInterval = setInterval(function() {
+            try { getPlayer()._playerContainer.walkSpeed = 500; } catch(e) {}
+          });
+          return Toast.fire("Success!", "Click teleporting enabled.", "success");
+        },
+        disabledFn: async function() {
+          clearInterval(window._crackinTpInterval);
+          try { getPlayer()._playerContainer.walkSpeed = 1.5; } catch(e) {}
+          return Toast.fire("Success!", "Click teleporting disabled.", "success");
+        }
+      },
+
+      { type: "hack", label: "Teleport To Map (Interactive)", fn: async function() {
+        var prodigy = getProdigy();
+        var zones = Object.keys(prodigy.world.zones);
+        var zoneOpts = {};
+        zones.forEach(function(z) { zoneOpts[z] = z; });
+        var zone = await Swal.fire({ title:"Select Zone", input:"select", inputOptions:zoneOpts, showCancelButton:true, customClass:SC });
+        if (!zone.value) return;
+        var mapList = Object.keys(prodigy.world.zones[zone.value].maps);
+        var mapOpts = new Map(mapList.map(function(x){return[x,x];}));
+        var area = await Swal.fire({ input:"select", inputOptions:mapOpts, title:"Map", text:"Which map?", customClass:SC });
+        if (!area.value) return;
+        var xr = await NumberInput.fire("X coordinate", "Try 500?", "question");
+        var yr = await NumberInput.fire("Y coordinate", "Try 500?", "question");
+        prodigy.world.zones[zone.value].teleport(area.value, xr.value||500, yr.value||500, {}, {});
+        return Toast.fire("Teleported!", "You have been teleported!", "success");
+      }},
+
+      { type: "hack", label: "Teleport To House by UserID", fn: async function() {
+        var res = await NumberInput.fire("UserID", "Enter the userID.", "question");
+        if (!res.value) return;
+        toHouse(res.value);
+        return Toast.fire("Teleported!", "You have been teleported!", "success");
+      }},
+
+      { type: "hack", label: "Get Map Location", fn: async function() {
+        var loc = getPlayer().data.zone;
+        try { await navigator.clipboard.writeText(loc); } catch(e) {}
+        return Swal.fire({ title:"Map Location", html:"You are at <br><code>" + loc + "</code><br>Copied to clipboard.", icon:"info", customClass:SC });
+      }},
+
+    ]},
+
+    // ── PETS ─────────────────────────────────────────────────────────────────
+    { id: "pets", label: "Pet Hacks", items: [
+
+      { type: "hack", label: "Get All Pets", fn: async function() {
+        if (!(await Confirm.fire("Add all pets to your kennel?")).value) return;
+        var p = getPlayer();
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        gd.pet.forEach(function(x) { try { p.kennel.addPet(x.ID.toString(), VERY_LARGE_NUMBER, 26376, 100); } catch(e) {} });
+        p.kennel._encounterInfo._data.pets = [];
+        gd.pet.forEach(function(pet) { p.kennel._encounterInfo._data.pets.push({ firstSeenDate:Date.now(), ID:pet.ID, timesBattled:1, timesRescued:1 }); });
+        p.kennel.petTeam.forEach(function(v) { if (v && v.assignRandomSpells) v.assignRandomSpells(); });
+        return Toast.fire("Success!", "All pets added!", "success");
+      }},
+
+      { type: "hack", label: "Get All Legacy Epics", fn: async function() {
+        if (!(await Confirm.fire("This may damage your account.", "Add all legacy epics?", "warning")).value) return;
+        var p = getPlayer();
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        gd.pet.filter(function(x){return[125,126,127,128,129,130,131,132,133].includes(x.ID);}).forEach(function(x){try{p.kennel.addPet(x.ID.toString(),VERY_LARGE_NUMBER,26376,100);}catch(e){}});
+        p.kennel.petTeam.forEach(function(v){if(v&&v.assignRandomSpells)v.assignRandomSpells();});
+        return Toast.fire("Success!", "All legacy epics added!", "success");
+      }},
+
+      { type: "hack", label: "Get All Mythical Epics", fn: async function() {
+        if (!(await Confirm.fire("Add all mythical epics?")).value) return;
+        var p = getPlayer();
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        gd.pet.filter(function(x){return[158,164,165,166,167,168,169,170,171,189].includes(x.ID);}).forEach(function(x){try{p.kennel.addPet(x.ID.toString(),VERY_LARGE_NUMBER,26376,100);}catch(e){}});
+        p.kennel.petTeam.forEach(function(v){if(v&&v.assignRandomSpells)v.assignRandomSpells();});
+        return Toast.fire("Success!", "All mythical epics added!", "success");
+      }},
+
+      { type: "hack", label: "Clear Pets", fn: async function() {
+        if (!(await Confirm.fire("Delete all pets?")).value) return;
+        getPlayer().kennel.data.length = 0;
+        return Toast.fire("Success!", "Pets cleared!", "success");
+      }},
+
+      { type: "hack", label: "Add Pet", fn: async function() {
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        var opts = new Map(gd.pet.map(function(x){return[x.ID.toString(), x.ID + ": " + (x.data ? x.data.name : x.name)];}));
+        var res = await Swal.fire({ input:"select", inputOptions:opts, title:"Choose Pet", text:"Which pet?", customClass:SC });
+        if (res.value === undefined) return;
+        var p = getPlayer();
+        p.kennel.addPet(res.value);
+        p.kennel._encounterInfo._data.pets.push({ firstSeenDate:Date.now(), ID:res.value, timesBattled:1, timesRescued:1 });
+        return Toast.fire("Success!", "Pet added!", "success");
+      }},
+
+      { type: "hack", label: "Uncap Pet Level (Client Side)", fn: async function() {
+        var petTeam = getPlayer().kennel.petTeam.slice(1);
+        var opts = {};
+        petTeam.forEach(function(pet, i) { if(pet) opts[i] = pet.getName ? pet.getName() : "Pet " + i; });
+        var pet = await Swal.fire({ title:"Which pet?", input:"select", inputOptions:opts, showCancelButton:true, customClass:SC });
+        var amt = await NumberInput.fire("Level", "New level (can be >100)", "question");
+        if (!amt.value) return;
+        eval("getPlayer().kennel.petTeam[parseInt(" + pet.value + ")+1].getLevel = () => " + amt.value);
+        return Toast.fire("Updated!", "Pet level updated (client side).", "success");
+      }},
+
+      { type: "hack", label: "Delete Pet", fn: async function() {
+        var idx = await getPet("Which pet do you wish to delete?");
+        if (idx === undefined) return;
+        getPlayer().kennel.data.splice(idx, 1);
+        return Toast.fire("Deleted!", "Pet deleted.", "success");
+      }},
+
+    ]},
+
+    // ── BATTLE ───────────────────────────────────────────────────────────────
+    { id: "battle", label: "Battle Hacks", items: [
+
+      { type: "toggle", label: "Disable Math [PvP, PvE]",
+        enabledFn: async function() {
+          window._.constants.constants["GameConstants.Debug.EDUCATION_ENABLED"] = false;
+          return Toast.fire("Enabled!", "No more math!", "success");
+        },
+        disabledFn: async function() {
+          window._.constants.constants["GameConstants.Debug.EDUCATION_ENABLED"] = true;
+          return Toast.fire("Disabled!", "Math is back.", "success");
+        }
+      },
+
+      { type: "toggle", label: "Instant Kill [PvE]",
+        enabledFn: async function() {
+          getPlayer().modifiers.damage = VERY_LARGE_NUMBER;
+          return Toast.fire("Enabled!", "Insane damage!", "success");
+        },
+        disabledFn: async function() {
+          getPlayer().modifiers.damage = 1;
+          return Toast.fire("Disabled!", "Normal damage restored.", "success");
+        }
+      },
+
+      { type: "hack", label: "PvP Health [PvP]", fn: async function() {
+        getPlayer().pvpHP = VERY_LARGE_NUMBER;
+        getPlayer().getMaxHearts = function() { return VERY_LARGE_NUMBER; };
+        return Toast.fire("Success!", "PvP health maxed!", "success");
+      }},
+
+      { type: "hack", label: "Escape Battle [PvP, PvE]", fn: async function() {
+        var cur = getGame().state.current;
+        var states = Object.fromEntries(Boot.prototype.game._state._states);
+        if (cur === "PVP") {
+          states.PVP.endPVP();
+          return Toast.fire("Escaped!", "Escaped from PvP.", "success");
+        } else if (cur === "CoOp") {
+          getProdigy().world.$(getPlayer().data.zone);
+          return Toast.fire("Escaped!", "Escaped from battle.", "success");
+        } else if (!["Battle","SecureBattle"].includes(cur)) {
+          return Toast.fire("Invalid State.", "You're not in a battle.", "error");
+        } else {
+          states[cur].runAwayCallback();
+          return Toast.fire("Escaped!", "Escaped from PvE battle.", "success");
+        }
+      }},
+
+      { type: "hack", label: "Win Battle [PvE]", fn: async function() {
+        var cur = getGame().state.current;
+        var states = Object.fromEntries(Boot.prototype.game._state._states);
+        if (cur === "PVP" || cur === "CoOp") return Toast.fire("Invalid State.", "PvP not supported.", "error");
+        if (cur === "Battle") { states.Battle.startVictory(); return Toast.fire("Victory!", "You won!", "success"); }
+        if (cur === "SecureBattle") { states.SecureBattle.battleVictory(); return Toast.fire("Victory!", "You won!", "success"); }
+        return Toast.fire("Invalid State.", "You're not in a battle.", "error");
+      }},
+
+      { type: "hack", label: "Set Battle Hearts [PvP, PvE]", fn: async function() {
+        var res = await NumberInput.fire("Health Amount", "How much HP?", "question");
+        if (res.value === undefined) return;
+        getPlayer().getMaxHearts = function() { return +res.value; };
+        getPlayer().pvpHP = +res.value;
+        getPlayer().data.hp = +res.value;
+        return Toast.fire("Success!", "Hearts set.", "success");
+      }},
+
+      { type: "hack", label: "Fill Battle Energy [PvP, PvE]", fn: async function() {
+        var state = getGame().state.getCurrentState();
+        if (!("teams" in state)) return Toast.fire("Error", "You're not in a battle.", "error");
+        state.teams[0].setEnergy(99);
+        return Toast.fire("Success!", "Battle energy filled.", "success");
+      }},
+
+      { type: "toggle", label: "Skip Enemy Turn",
+        enabledFn: async function() {
+          window._.constants.constants["GameConstants.Battle.SKIP_ENEMY_TURN"] = true;
+          return Toast.fire("Skipping!", "Enemy turns skipped.", "success");
+        },
+        disabledFn: async function() {
+          window._.constants.constants["GameConstants.Battle.SKIP_ENEMY_TURN"] = false;
+          return Toast.fire("Disabled", "Enemy turns restored.", "success");
+        }
+      },
+
+      { type: "hack", label: "Heal Team [PvE]", fn: async function() {
+        var cur = getGame().state.current;
+        if (cur === "PVP" || cur === "CoOp") return Toast.fire("Invalid State.", "PvP not supported.", "error");
+        if (["Battle","SecureBattle"].includes(cur)) {
+          getPlayer().heal();
+          return Toast.fire("Success!", "Team healed!", "success");
+        }
+        return Toast.fire("Invalid State.", "You're not in a battle.", "error");
+      }},
+
+    ]},
+
+    // ── MINIGAMES ────────────────────────────────────────────────────────────
+    { id: "minigames", label: "Minigame Hacks", items: [
+
+      { type: "toggle", label: "69x Walk Speed [Dyno Dig]",
+        enabledFn: async function() {
+          Boot.prototype.game._state._states.get("DinoDig").walkSpeed = 69;
+          return Toast.fire("Enabled!", "Zoom zoom in Dyno Dig.", "success");
+        },
+        disabledFn: async function() {
+          Boot.prototype.game._state._states.get("DinoDig").walkSpeed = 1.5;
+          return Toast.fire("Disabled!", "Normal speed restored.", "success");
+        }
+      },
+
+    ]},
+
+    // ── MISC ─────────────────────────────────────────────────────────────────
+    { id: "misc", label: "Miscellaneous Hacks", items: [
+
+      { type: "hack", label: "Skip Tutorial", fn: async function() {
+        var p = getPlayer();
+        var setQuest = function(t, i) {
+          try { Boot.prototype.game._state._current._world.getZone(t).testQuest(i); } catch(e) {}
+          try { Object.fromEntries(Boot.prototype.game._state._states).TileScreen.process(); } catch(e) {}
+        };
+        setQuest("house", 2); setQuest("academy", 2);
+        p.state.set("tutorial-0", 4);
+        p.backpack.addKeyItem(13, 0);
+        p.tutorial.data.menus[14] = [1];
+        Boot.prototype.add.prodigyGame.open.map(true, []);
+        p.onTutorialComplete();
+        p.data.level = Math.max(p.data.level, 5);
+        return Toast.fire("Success!", "Tutorial skipped.", "success");
+      }},
+
+      { type: "toggle", label: "Disable Monster Encounters",
+        enabledFn: async function() {
+          window._.constants.constants["GameConstants.Debug.SCALE_ENCOUNTER_DISTANCE"] = 0;
+          return Toast.fire("Enabled!", "No more monster encounters.", "success");
+        },
+        disabledFn: async function() {
+          window._.constants.constants["GameConstants.Debug.SCALE_ENCOUNTER_DISTANCE"] = 1;
+          return Toast.fire("Disabled!", "Encounters restored.", "success");
+        }
+      },
+
+      { type: "toggle", label: "Unlimited Spins",
+        enabledFn: async function() {
+          window._crackinCanSpinBackup = getPlayer().canSpin;
+          getPlayer().canSpin = function() { return true; };
+          return Toast.fire("Enabled!", "Unlimited spins!", "success");
+        },
+        disabledFn: async function() {
+          if (window._crackinCanSpinBackup) getPlayer().canSpin = window._crackinCanSpinBackup;
+          return Toast.fire("Disabled!", "Spins back to normal.", "success");
+        }
+      },
+
+      { type: "hack", label: "Bobbify", fn: async function() {
+        if (!(await Confirm.fire("Turn into Bobby Fancywoman?", "This is not reversible.")).value) return;
+        var p = getPlayer();
+        p.name.data.nickname = null; p.name.data.firstName = 44; p.name.data.middleName = 754; p.name.data.lastName = 882;
+        p.data.stars = -1e22; p.data.level = 69;
+        p.appearance.setGender("male"); p.appearance.setEyeColor(1); p.appearance.setFace(4); p.appearance.setHair(19,1); p.appearance.setSkinColor(1);
+        p.equipment.setFollow(19); p.equipment.setHat(19); p.equipment.setBoots(19); p.equipment.setOutfit(19); p.equipment.setWeapon(19);
+        return Toast.fire("Bobbified!", "You are now Bobby Fancywoman.", "success");
+      }},
+
+      { type: "hack", label: "Reset Account", fn: async function() {
+        if (!(await Confirm.fire("Reset your account?", "This is not reversible.")).value) return;
+        getPlayer().resetAccount();
+        return Swal.fire("Reset!", "Account reset. Reload Prodigy.", "success", { customClass: SC });
+      }},
+
+      { type: "hack", label: "[Fix] Fix Battle Crash", fn: async function() {
+        getPlayer().kennel.petTeam.forEach(function(v) { if (v && v.assignRandomSpells) v.assignRandomSpells(); });
+        return Toast.fire("Success!", "Fixed kennel attack bug!", "success");
+      }},
+
+      { type: "hack", label: "[Fix] Stuck in Unfinished Tower Fix", fn: async function() {
+        Boot.prototype.game._state._current._world.zones["house"].teleport("exit");
+        return Toast.fire("Success!", "Teleported outside house.", "success");
+      }},
+
+      { type: "hack", label: "uwu", fn: async function() {
+        if (!(await Confirm.fire("Are you sure you want to UwU OwO?", "Reload Prodigy to revert.")).value) return;
+        Object.chance = t => { const e = {}; let r = 0; for (const n of Object.keys(t).sort((t, r) => e[t] - e[r]))e[n] = [], e[n][0] = r + 1, e[n][1] = t[n] + r, r = t[n] + r; return e; };
+        Object.random = t => { const e = Object.values(t); const r = e[e.length - 1][1]; const n = Math.randint(r); return Object.reverse(t)[e.find(t => n >= t[0] && n <= t[1])]; };
+        Math.randint = (t, e = 0) => Math.floor(Math.random() * t - e) + e;
+        String.prototype.escapeRegex = function() { return this.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); };
+        String.prototype.replaceAll = function(t, e) { return this.replace(new RegExp(t.toString().escapeRegex(), "gi"), t => e); };
+        Object.fromArrays = (t, e) => { const r = {}; return t.forEach((t, n) => { r[t] = e[n]; }), r; };
+        Object.reverse = t => Object.fromArrays(Object.values(t), Object.keys(t));
+        String.prototype.bulkReplace = function(t) { let e = this; for (const r in t) e = e.replaceAll(r, t[r]); return e; };
+        String.UWUTable = { y:"wy",l:"w",r:"w",ss:"zs",n:"nw",ove:"uv",ome:"um",x:"ks",com:"cum",stu:"stew",au:"aw" };
+        String.UWU = t => String(t).bulkReplace(String.UWUTable);
+        String.UWUFX = t => { const e = Object.chance({"owo :3":20,"✧w✧":20,UwU:20,OwO:10,rawr:10,"uwu :3":5,":3 meow":15,":3":15,X3:15,"*purrs*":15,owo:15,uwu:15,"^w^":15,"x3 rawr":15,owowowowo:15}); return String(t); };
+        try { Object.keys(window._.localizer.dataSource._languageData).map(x => window._.localizer.dataSource._languageData[x] = String.UWUFX(String.UWU(window._.localizer.dataSource._languageData[x]))); } catch(e) {}
+        return Toast.fire("uwu", "Reload Prodigy to fix uwu.", "success");
+      }},
+
+    ]},
+
+    // ── UTILITY ──────────────────────────────────────────────────────────────
+    { id: "utility", label: "Utility Hacks", items: [
+
+      { type: "hack", label: "Close All Popups", fn: async function() {
+        try { Boot.prototype.add.prodigyGame.open.menuCloseAll(); } catch(e) {}
+        return Toast.fire("Closed!", "All popups closed.", "success");
+      }},
+
+      { type: "hack", label: "Grab UserID of All Players on Screen", fn: async function() {
+        var users = getCurrent().playerList;
+        if (Object.keys(users).length === 0) return Toast.fire("No players found.", "No other players on screen.", "error");
+        var contents = "";
+        Object.keys(users).forEach(function(uid, i) {
+          try { var name = Object.entries(users)[i][1].nameText.textSource.source; contents += "<li>uID: " + uid + " - " + name + "</li>"; } catch(e) { contents += "<li>uID: " + uid + "</li>"; }
+        });
+        return Swal.fire({ title:"Players on screen:", html:"<ul>" + contents + "</ul>", icon:"info", customClass:SC });
+      }},
+
+      { type: "hack", label: "Save Character Locally", fn: async function() {
+        localStorage.setItem("playerData", JSON.stringify(getPlayer().getUpdatedData(true)));
+        return Toast.fire("Success!", "Saved locally. Load only works on this device.", "success");
+      }},
+
+      { type: "hack", label: "Load Local Character", fn: async function() {
+        if (!localStorage.getItem("playerData")) return Toast.fire("Error", "No saved character.", "error");
+        var pd = localStorage.getItem("playerData");
+        var req = await fetch("https://api.prodigygame.com/game-api/v3/characters/" + getPlayer().userID, {
+          headers:{ accept:"*/*","accept-language":"en-US,en;q=0.9", authorization:localStorage.JWT_TOKEN,"content-type":"application/json" },
+          referrer:"https://play.prodigygame.com/",
+          body: JSON.stringify({ data:pd, userID:getPlayer().userID }),
+          method:"POST", mode:"cors"
+        });
+        if (!req.ok) return Toast.fire("Request failed.", "Error: " + req.status, "error");
+        return Toast.fire("Success!", "Loaded! Reload for changes.", "success");
+      }},
+
+      { type: "hack", label: "Save Character", fn: async function() {
+        saveCharacter();
+        return Toast.fire("Success!", "Character saved!", "success");
+      }},
+
+      { type: "hack", label: "Update Menu", fn: async function() {
+        document.getElementById("crackin-menu")?.remove();
+        document.getElementById("crackin-toggler")?.remove();
+        eval(await (await fetch("https://raw.githubusercontent.com/ProdigyPNP/ProdigyMathGameHacking/master/cheatGUI/dist/bundle.js?updated=" + Date.now())).text());
+        return Toast.fire("Updated!", "Menu updated.", "success");
+      }},
+
+      { type: "hack", label: "Disable Inactivity Kick", fn: async function() {
+        window._.constants.constants["GameConstants.Inactivity.LOG_OUT_TIMER_SECONDS"] = 0;
+        return Toast.fire("Success!", "Inactivity kick disabled.", "success");
+      }},
+
+      { type: "toggle", label: "Enable Menu Resize",
+        enabledFn: async function() {
+          document.getElementById("crackin-menu").style.resize = "both";
+          return Toast.fire("Success!", "Drag bottom-right corner to resize.", "success");
+        },
+        disabledFn: async function() {
+          document.getElementById("crackin-menu").style.resize = "none";
+          return Toast.fire("Success!", "Menu size locked.", "success");
+        }
+      },
+
+      { type: "toggle", label: "Pause Game",
+        enabledFn: async function() {
+          window._.network.game._paused = true;
+          return Toast.fire("Paused!", "Game paused.", "success");
+        },
+        disabledFn: async function() {
+          window._.network.game._paused = false;
+          return Toast.fire("Resumed!", "Game resumed.", "success");
+        }
+      },
+
+      { type: "hack", label: "Eval Console", fn: async function() {
+        if (!(await Confirm.fire({ title:"Important", html:"This evaluates raw JavaScript with access to Prodigy's internals. <strong>Do not paste code from strangers.</strong>", icon:"warning" })).value) return;
+        var res = await Input.fire("Code:", "Enter code to evaluate.");
+        if (!res.value) return;
+        try {
+          eval(res.value);
+          return Toast.fire("Evaluated!", "Code was evaluated.", "success");
+        } catch(err) {
+          return Swal.fire({ title:"Error", html:"Error: <code>" + err + "</code>", icon:"error", customClass:SC });
+        }
+      }},
+
+    ]},
+
+    // ── BETA ─────────────────────────────────────────────────────────────────
+    { id: "beta", label: "Beta Testing", tabClass: "tab-beta", pill: { text:"BETA", cls:"pill-beta" }, items: [
+
+      { type: "hack", label: "Switch Branch", cls:"btn-beta", fn: async function() {
+        var bFetch = await (await fetch("https://api.github.com/repos/ProdigyPNP/ProdigyMathGameHacking/branches")).text();
+        var branches = new Map();
+        JSON.parse(bFetch).forEach(function(e) { branches.set(e.name, e.name); });
+        var res = await Swal.fire({ title:"Select Branch", html:"Select a ProdigyPNP branch.", input:"select", inputOptions:branches, customClass:SC });
+        if (!res.value) return;
+        eval(await (await fetch("https://raw.githubusercontent.com/ProdigyPNP/ProdigyMathGameHacking/" + res.value + "/cheatGUI/dist/bundle.js")).text());
+      }},
+
+      { type: "hack", label: "Get All Runes [BETA]", cls:"btn-beta", fn: async function() {
+        if (!(await Confirm.fire({ title:"Hang on!", html:"This may damage your account. Proceed?", icon:"warning" })).value) return;
+        var res = await NumberInput.fire({ title:"Amount", text:"How many of each?", icon:"question" });
+        if (isNaN(parseInt(res.value))) return;
+        var amount = parseInt(res.value);
+        var mod;
+        Array.from(Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer._bindingDictionary._map).forEach(function(e) {
+          try { if (Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer.get(e[0]).battleData) mod = e[0]; } catch(err) {}
+        });
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer.get(mod).battleData._secureCharacterState._data.inventory.orb = runeify(gd.orb, amount);
+        return Toast.fire("Runes Added!", "Runes added!", "success");
+      }},
+
+      { type: "hack", label: "Edit Pet [BETA]", cls:"btn-beta", fn: async function() {
+        if (!(await Confirm.fire({ title:"Hang on!", html:"This may damage your account. Proceed?", icon:"warning" })).value) return;
+        var idx = await getPet("Choose the pet to edit.");
+        if (idx === undefined) return;
+        var selected = getPlayer().kennel.data[idx];
+        var opt = await Swal.fire({ input:"select", inputOptions:{ level:"Level", attacks:"Attacks", name:"Name" }, title:"Edit Property", text:"What to edit?", customClass:SC });
+        if (opt.value === undefined) return;
+        if (opt.value === "level") {
+          var lvl = await NumberInput.fire("Level", "What level?", "question");
+          if (lvl.value === undefined) return;
+          selected.level = +lvl.value;
+          return Toast.fire("Success!", "Pet level set.", "success");
+        } else if (opt.value === "name") {
+          var nm = await Input.fire("Input Name", "What to name the pet?", "question");
+          if (nm.value === undefined) return;
+          selected.nickname = nm.value;
+          return Toast.fire("Renamed!", "Pet renamed.", "success");
+        } else if (opt.value === "attacks") {
+          return Toast.fire("Info", "Attack editing requires advanced setup. Use Eval Console.", "info");
+        }
+      }},
+
+      { type: "hack", label: "Morph Player [BETA]", cls:"btn-beta", fn: async function() {
+        if (!(await Confirm.fire("This hack is in BETA", "Expect bugs.")).value) return;
+        var morphType = await Swal.fire({ title:"Morph type?", input:"select", inputOptions:{ pet:"Pet", dorm:"Furniture", follow:"Follow" }, inputPlaceholder:"Morph Type", showCancelButton:true, customClass:SC });
+        if (!morphType.value) return;
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        var morphOptions = {};
+        gd[morphType.value].forEach(function(m) { morphOptions[m.ID] = (m.data ? m.data.name : m.name) + " (" + m.ID + ")"; });
+        var morphID = await Swal.fire({ title:"Which morph?", input:"select", inputOptions:morphOptions, inputPlaceholder:"Morph ID", showCancelButton:true, customClass:SC });
+        if (!morphID.value) return;
+        getPlayer().getPlayerData().playerTransformation = { transformType:morphType.value, transformID:morphID.value, maxTime:60*60*1000, timeRemaining:60*60*1000 };
+        getPlayer().appearanceChanged = true;
+        return Toast.fire("Morphed!", "You've been morphed.", "success");
+      }},
+
+      { type: "toggle", label: "(Client Side) Toggle Invisibility [BETA]", cls:"btn-beta",
+        enabledFn: async function() { getCurrent().user.visible = false; },
+        disabledFn: async function() { getCurrent().user.visible = true; }
+      },
+
+      { type: "toggle", label: "Toggle Close Popups [BETA]", cls:"btn-beta",
+        enabledFn: async function() {
+          PopupInterval(true);
+          return Toast.fire("Enabled", "Auto-closing popups.", "success");
+        },
+        disabledFn: async function() {
+          PopupInterval(false);
+          return Toast.fire("Disabled", "Auto-close off.", "success");
+        }
+      },
+
+      { type: "hack", label: "Hypermax Account [BETA]", cls:"btn-beta", fn: async function() {
+        if (!(await Confirm.fire({ title:"Hang on!", html:"This WILL damage your account (418s, inactivity kicks, Rune Run broken).<br><br>Proceed?", icon:"warning" })).value) return;
+        var p = getPlayer();
+        var gd = Boot.prototype.game._state._states.get("Boot")._gameData;
+        p.data.gold = 9900000;
+        var h = 98; var xpC = 1.042;
+        p.data.stars = Math.round((1 - Math.pow(xpC, h)) / (1 - xpC) * 20 + 10);
+        p.data.level = 100; p.getLevel = function(){return 100;};
+        p.data.bountyScore = 100;
+        for (var i = 0; i < 99; i++) { try{getProdigy().giftBoxController.receiveGiftBox(null,getItem("giftBox",1));}catch(e){} }
+        p.data.win = VERY_LARGE_NUMBER; p.data.loss = -9223372036854776000;
+        p.modifiers.damage = VERY_LARGE_NUMBER;
+        p.pvpHP = VERY_LARGE_NUMBER; p.getMaxHearts = function(){return VERY_LARGE_NUMBER;};
+        for (var i=0;i<100;i++){try{p.achievements.data.progress[i]=10;}catch(e){}}
+        p.data.tower = 100;
+        p.getMaxHearts = function(){return VERY_LARGE_NUMBER;}; p.pvpHP = VERY_LARGE_NUMBER; p.data.hp = VERY_LARGE_NUMBER;
+        var num = 990000;
+        ids.forEach(function(id){p.backpack.data[id]=itemify(gd[id].filter(function(l){return id==="follow"?![125,126,127,128,129,134,135,136,137].includes(l.ID):l;}),num);});
+        gd.dorm.forEach(function(x){p.house.data.items[x.ID]={A:[],N:num};});
+        var bi=function(){return p.backpack.data.item.findIndex(function(v){return v.ID===84||v.ID===85||v.ID===86;});};
+        while(bi()>-1)p.backpack.data.item.splice(bi(),1);
+        p.backpack.data.mount = itemify(gd.mount,1);
+        gd.pet.forEach(function(x){try{p.kennel.addPet(x.ID.toString(),VERY_LARGE_NUMBER,26376,100);}catch(e){}});
+        p.kennel._encounterInfo._data.pets=[];
+        gd.pet.forEach(function(pet){p.kennel._encounterInfo._data.pets.push({firstSeenDate:Date.now(),ID:pet.ID,timesBattled:1,timesRescued:1});});
+        p.kennel.petTeam.forEach(function(v){if(v&&v.assignRandomSpells)v.assignRandomSpells();});
+        window._.constants.constants["GameConstants.Inactivity.LOG_OUT_TIMER_SECONDS"] = 0;
+        try{p._playerContainer.walkSpeed=20;}catch(e){}
+        var mod;
+        Array.from(Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer._bindingDictionary._map).forEach(function(e){try{if(Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer.get(e[0]).battleData)mod=e[0];}catch(err){}});
+        Boot.prototype.add.prodigyGame._rootContainer._inversifyContainer.get(mod).battleData._secureCharacterState._data.inventory.orb=runeify(gd.orb,100);
+        p.equipment.setHat(200); p.equipment.setBoots(93); p.equipment.setOutfit(161); p.equipment.setWeapon(196);
+        saveCharacter(); p.appearanceChanged=true;
+        try{Boot.prototype.add.prodigyGame.open.menuCloseAll();}catch(e){}
+        saveCharacter();
+        return Toast.fire("Hypermaxed!", "Check your backpack!", "success");
+      }},
+
+      { type: "toggle", label: "FPS Counter [BETA]", cls:"btn-beta",
+        enabledFn: async function() { startFps(); },
+        disabledFn: async function() { stopFps(); }
+      },
+
+    ]},
+
+    // ── PATCHED ──────────────────────────────────────────────────────────────
+    { id: "patched", label: "Patched Hacks", tabClass:"tab-patched", pill:{ text:"PATCHED", cls:"pill-patched" }, items: [
+
+      { type: "hack", label: "Arena Point Increaser [Patched]", cls:"btn-patched", fn: async function() {
+        if (!(await Confirm.fire("This hack is patched.", "Running it will probably do nothing.")).value) return;
+        var prodigy = getProdigy();
+        var arenInterval = setInterval(async function() {
+          var data = await (await fetch(
+            "https://api.prodigygame.com/leaderboard-api/season/" + prodigy.pvpNetworkHandler.seasonID + "/user/" + getPlayer().userID + "/pvp?userID=" + getPlayer().userID,
+            { headers:{ authorization:"Bearer " + prodigy.network.jwtAuthProvider.getToken(), "content-type":"application/x-www-form-urlencoded; charset=UTF-8" }, body:"seasonID=" + prodigy.pvpNetworkHandler.seasonID + "&action=win", method:"POST", mode:"cors" }
+          )).text();
+          if (data) { try { console.log("[API] " + JSON.parse(data).points + " Points (+100)"); } catch(e) {} }
+          else console.log("[API] Failed to add points.");
+        }, 60500);
+        return Swal.fire("Enabled", "Arena Point Increaser enabled.", "success");
+      }},
+
+      { type: "hack", label: "Disable Timeout Dialog [Patched]", cls:"btn-patched", fn: async function() {
+        if (!(await Confirm.fire("This hack is patched.", "Running it will probably do nothing.")).value) return;
+        try { getProdigy().debugMisc.disableTimeoutDialogue(); } catch(e) {}
+        return Toast.fire("Enabled", "Timeout dialog disabled.", "success");
+      }},
+
+    ]},
+
+  ];
+
+  // ─── BUILD DOM ────────────────────────────────────────────────────────────
+  var menu = document.createElement("div");
+  menu.id = "crackin-menu";
+
+  var header = document.createElement("div");
+  header.id = "crackin-header";
+  header.innerHTML = '<div><div class="logo">Crackin<span>PMG</span></div><div class="subtitle">Prodigy Hack Menu &mdash; Full Version</div></div><div style="color:var(--muted);font-size:11px;">v2.0</div>';
+  menu.appendChild(header);
+
+  var tabBar = document.createElement("div");
+  tabBar.id = "crackin-tabs";
+
+  var content = document.createElement("div");
+  content.id = "crackin-content";
+
+  var footer = document.createElement("div");
+  footer.id = "crackin-footer";
+  footer.innerHTML = '<span>CrackinPMG Hack Menu</span><span><a href="https://discord.gg/KXDrcZQV6R" target="_blank" style="color:var(--accent);text-decoration:none;">Discord</a> &nbsp;|&nbsp; <a href="https://www.youtube.com/@CrackinPMG" target="_blank" style="color:var(--accent);text-decoration:none;">YouTube</a></span>';
+
+  categories.forEach(function(cat, i) {
+    var tab = document.createElement("div");
+    tab.className = "crackin-tab" + (cat.tabClass ? " " + cat.tabClass : "") + (i === 0 ? " active" : "");
+    tab.textContent = cat.label;
+    tab.dataset.target = cat.id;
+    tabBar.appendChild(tab);
+
+    var panel = document.createElement("div");
+    panel.className = "crackin-panel" + (i === 0 ? " active" : "");
+    panel.id = "panel-" + cat.id;
+
+    var titleEl = document.createElement("div");
+    titleEl.className = "crackin-panel-title";
+    titleEl.textContent = cat.label;
+    if (cat.pill) {
+      var pillEl = document.createElement("span");
+      pillEl.className = "pill " + cat.pill.cls;
+      pillEl.textContent = cat.pill.text;
+      titleEl.appendChild(pillEl);
+    }
+    panel.appendChild(titleEl);
+
+    var grid = document.createElement("div");
+    grid.className = "crackin-grid";
+
+    cat.items.forEach(function(item) {
+      if (item.type === "hack") {
+        var btn = document.createElement("button");
+        btn.className = "crackin-btn" + (item.cls ? " " + item.cls : "");
+        btn.textContent = item.label;
+        btn.addEventListener("click", function() {
+          try { item.fn(); } catch(e) {
+            Swal.fire({ title:"Error", html:"<code>" + e + "</code>", icon:"error", customClass:SC });
+          }
+        });
+        grid.appendChild(btn);
+
+      } else if (item.type === "toggle") {
+        var row = document.createElement("div");
+        row.className = "crackin-toggle-row";
+        var lbl = document.createElement("span");
+        lbl.className = "label";
+        lbl.textContent = item.label;
+        var sw = document.createElement("label");
+        sw.className = "crackin-switch";
+        var inp = document.createElement("input");
+        inp.type = "checkbox";
+        var track = document.createElement("span");
+        track.className = "track";
+        var thumb = document.createElement("span");
+        thumb.className = "thumb";
+        sw.appendChild(inp); sw.appendChild(track); sw.appendChild(thumb);
+        row.appendChild(lbl); row.appendChild(sw);
+
+        inp.addEventListener("change", function() {
+          try {
+            if (inp.checked) { if (item.enabledFn) item.enabledFn(); }
+            else { if (item.disabledFn) item.disabledFn(); }
+          } catch(e) {
+            Swal.fire({ title:"Error", html:"<code>" + e + "</code>", icon:"error", customClass:SC });
+          }
+        });
+        row.addEventListener("click", function(e) { if (e.target !== inp) inp.click(); });
+        grid.appendChild(row);
+      }
+    });
+
+    panel.appendChild(grid);
+    content.appendChild(panel);
+  });
+
+  menu.appendChild(tabBar);
+  menu.appendChild(content);
+  menu.appendChild(footer);
+  document.body.appendChild(menu);
+
+  tabBar.addEventListener("click", function(e) {
+    var tab = e.target.closest(".crackin-tab");
+    if (!tab) return;
+    document.querySelectorAll(".crackin-tab").forEach(function(t) { t.classList.remove("active"); });
+    document.querySelectorAll(".crackin-panel").forEach(function(p) { p.classList.remove("active"); });
+    tab.classList.add("active");
+    var p = document.getElementById("panel-" + tab.dataset.target);
+    if (p) p.classList.add("active");
+  });
+
+  var toggler = document.createElement("div");
+  toggler.id = "crackin-toggler";
+  toggler.innerHTML = "&#9660;";
+  document.body.appendChild(toggler);
+
+  var menuOpen = false;
+  toggler.addEventListener("click", function() {
+    menuOpen = !menuOpen;
+    menu.classList.toggle("open", menuOpen);
+    toggler.innerHTML = menuOpen ? "&#9650;" : "&#9660;";
+  });
+
+};
